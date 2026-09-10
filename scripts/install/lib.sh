@@ -83,3 +83,53 @@ create_backup_dir() {
     local bdir="$HOME/.hyprdots-backup-$ts"
     echo "$bdir"
 }
+
+retry_cmd() {
+    local max_attempts="${1:-3}"
+    local delay="${2:-2}"
+    shift 2
+    local attempt=1
+    until "$@"; do
+        if [ "$attempt" -ge "$max_attempts" ]; then
+            error "Command '$*' failed after $max_attempts attempts."
+            return 1
+        fi
+        warn "Command '$*' failed (attempt $attempt/$max_attempts). Retrying in ${delay}s..."
+        sleep "$delay"
+        attempt=$((attempt + 1))
+    done
+    return 0
+}
+
+check_and_clear_pacman_lock() {
+    if [ -f /var/lib/pacman/db.lck ]; then
+        if ! pgrep -x pacman >/dev/null 2>&1 && ! pgrep -x paru >/dev/null 2>&1 && ! pgrep -x yay >/dev/null 2>&1; then
+            warn "Found stale pacman lock file (/var/lib/pacman/db.lck). Removing..."
+            sudo rm -f /var/lib/pacman/db.lck
+            ok "Stale pacman lock removed."
+        else
+            error "Another pacman/AUR package manager process is currently running. Please wait for it to finish."
+            exit 1
+        fi
+    fi
+}
+
+detect_hypervisor() {
+    local virt="none"
+    if command -v systemd-detect-virt >/dev/null 2>&1; then
+        virt=$(systemd-detect-virt 2>/dev/null || echo "none")
+    fi
+    if [ "$virt" = "none" ]; then
+        if grep -qi vmware /sys/class/dmi/id/product_name 2>/dev/null || grep -qi vmware /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+            virt="vmware"
+        elif grep -qi virtualbox /sys/class/dmi/id/product_name 2>/dev/null || grep -qi innotek /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+            virt="oracle"
+        elif grep -qi qemu /sys/class/dmi/id/product_name 2>/dev/null || grep -qi kvm /sys/class/dmi/id/sys_vendor 2>/dev/null; then
+            virt="kvm"
+        elif grep -qi microsoft /proc/version 2>/dev/null; then
+            virt="wsl"
+        fi
+    fi
+    echo "$virt"
+}
+

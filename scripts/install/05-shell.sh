@@ -13,7 +13,7 @@ banner "Step 05: Shell Setup (Zsh + Oh-My-Zsh)"
 ZSH_DIR="$HOME/.oh-my-zsh"
 if [ ! -d "$ZSH_DIR" ] || [ ! -f "$ZSH_DIR/oh-my-zsh.sh" ]; then
     info "Installing Oh My Zsh (unattended)..."
-    RUNZSH=no CHSH=no KEEP_ZSHRC=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+    RUNZSH=no CHSH=no KEEP_ZSHRC=yes retry_cmd 3 2 sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
     ok "Oh My Zsh installed."
 else
     ok "Oh My Zsh already installed."
@@ -26,7 +26,7 @@ mkdir -p "$ZSH_CUSTOM/plugins"
 info "Setting up zsh-autosuggestions plugin..."
 AUTO_DIR="$ZSH_CUSTOM/plugins/zsh-autosuggestions"
 if [ ! -d "$AUTO_DIR" ]; then
-    git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions.git "$AUTO_DIR"
+    retry_cmd 3 2 git clone --depth 1 https://github.com/zsh-users/zsh-autosuggestions.git "$AUTO_DIR"
 else
     git -C "$AUTO_DIR" pull --ff-only 2>/dev/null || true
 fi
@@ -34,7 +34,7 @@ fi
 info "Setting up zsh-syntax-highlighting plugin..."
 SYNTAX_DIR="$ZSH_CUSTOM/plugins/zsh-syntax-highlighting"
 if [ ! -d "$SYNTAX_DIR" ]; then
-    git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_DIR"
+    retry_cmd 3 2 git clone --depth 1 https://github.com/zsh-users/zsh-syntax-highlighting.git "$SYNTAX_DIR"
 else
     git -C "$SYNTAX_DIR" pull --ff-only 2>/dev/null || true
 fi
@@ -49,18 +49,19 @@ fi
 cp "$REPO_ROOT/dotfiles/.zshrc" "$HOME/.zshrc"
 ok ".zshrc deployed."
 
-# 4. Change default shell to zsh
+# 4. Change default shell to zsh (respects upfront selection)
 CURRENT_SHELL="$(getent passwd "$USER" | cut -d: -f7)"
 ZSH_BIN="$(command -v zsh)"
-if [ "$CURRENT_SHELL" != "$ZSH_BIN" ]; then
-    if confirm "Change default shell for $USER to $ZSH_BIN?" "Y"; then
+if [ "${CHANGE_SHELL:-1}" = "1" ]; then
+    if [ "$CURRENT_SHELL" != "$ZSH_BIN" ]; then
+        info "Changing default shell for $USER to $ZSH_BIN..."
         sudo chsh -s "$ZSH_BIN" "$USER"
         ok "Default shell changed to $ZSH_BIN."
     else
-        warn "Shell change skipped by user."
+        ok "Default shell is already $ZSH_BIN."
     fi
 else
-    ok "Default shell is already $ZSH_BIN."
+    info "Skipping default shell change (retaining current shell: $CURRENT_SHELL)."
 fi
 
 # 5. Verification

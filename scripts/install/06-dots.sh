@@ -9,6 +9,13 @@ source "$SCRIPT_DIR/lib.sh"
 
 banner "Step 06: Deploying Dotfiles"
 
+# Initialize standard user directories
+if command -v xdg-user-dirs-update >/dev/null 2>&1; then
+    info "Updating XDG user directories..."
+    xdg-user-dirs-update || true
+fi
+mkdir -p "$HOME/Desktop" "$HOME/Documents" "$HOME/Downloads" "$HOME/Music" "$HOME/Pictures" "$HOME/Videos"
+
 BACKUP_DIR=$(create_backup_dir)
 TARGETS=(hypr waybar rofi kitty cava matugen swaync wlogout fastfetch xdg-desktop-portal)
 BACKED_UP=0

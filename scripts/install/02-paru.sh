@@ -8,6 +8,8 @@ source "$SCRIPT_DIR/lib.sh"
 
 banner "Step 02: Bootstrap AUR Helper"
 
+check_and_clear_pacman_lock
+
 mkdir -p "$HOME/.cache"
 HELPER_CACHE="$HOME/.cache/hyprdots_aur_helper"
 
@@ -26,7 +28,7 @@ fi
 info "Attempting to bootstrap paru-bin from AUR..."
 BUILD_DIR="/tmp/paru-bin-$$"
 rm -rf "$BUILD_DIR"
-git clone https://aur.archlinux.org/paru-bin.git "$BUILD_DIR"
+retry_cmd 3 2 git clone https://aur.archlinux.org/paru-bin.git "$BUILD_DIR"
 
 (
     cd "$BUILD_DIR"
@@ -40,10 +42,10 @@ if command -v paru >/dev/null 2>&1 && paru --version >/dev/null 2>&1; then
     exit 0
 fi
 
-warn "paru-bin is not functional (due to libalpm ABI update). Bootstrapping yay-bin as resilient AUR helper..."
+warn "paru-bin is not functional. Bootstrapping yay-bin as resilient AUR helper..."
 BUILD_DIR="/tmp/yay-bin-$$"
 rm -rf "$BUILD_DIR"
-git clone https://aur.archlinux.org/yay-bin.git "$BUILD_DIR"
+retry_cmd 3 2 git clone https://aur.archlinux.org/yay-bin.git "$BUILD_DIR"
 
 (
     cd "$BUILD_DIR"

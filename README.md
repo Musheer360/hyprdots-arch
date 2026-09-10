@@ -27,17 +27,23 @@
 
 ## Installation
 
-Run the one-liner installer:
+Ensure `git` is installed on your fresh system, then clone and run:
 
 ```bash
+sudo pacman -S --needed git
 git clone https://github.com/Musheer360/hyprdots-arch.git ~/hyprdots-arch
 cd ~/hyprdots-arch
 ./install.sh
 ```
 
-### Automated / Non-interactive Installation
+> **Zero-Friction / Unattended Execution**:
+> - **Single upfront password prompt**: The installer requests `sudo` access once at the start and runs a background keep-alive daemon so it never prompts again.
+> - **5-second upfront questionnaire**: All user preferences (extra apps, Zsh shell, greetd login manager) are gathered upfront.
+> - **100% unattended execution**: Once questions are answered, the script executes completely hands-free with automatic stale lock clearing, network retries, and hypervisor detection (VMware, VirtualBox, KVM).
 
-For unattended installations (e.g. CI or fresh scripts):
+### Fully Automated / Non-interactive Installation
+
+To bypass all prompts completely and use recommended defaults:
 
 ```bash
 NONINTERACTIVE=1 ./install.sh

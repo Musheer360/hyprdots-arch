@@ -8,14 +8,11 @@ source "$SCRIPT_DIR/lib.sh"
 
 banner "Step 09: Configuring Login Manager (greetd + tuigreet)"
 
+CONFIGURE_GREETD="${CONFIGURE_GREETD:-1}"
 SKIP_GREETD="${SKIP_GREETD:-0}"
-if [ "$SKIP_GREETD" = "1" ]; then
-    info "Skipping greetd configuration (--skip-greetd specified)."
-    exit 0
-fi
 
-if ! confirm "Enable and configure greetd with tuigreet as the display manager?" "Y"; then
-    info "greetd setup skipped by user choice."
+if [ "$SKIP_GREETD" = "1" ] || [ "$CONFIGURE_GREETD" != "1" ]; then
+    info "Skipping greetd configuration (disabled by flag or upfront selection)."
     exit 0
 fi
 

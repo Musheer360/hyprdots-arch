@@ -8,6 +8,10 @@ source "$SCRIPT_DIR/lib.sh"
 
 banner "Step 00: Pre-installation System Checks"
 
+# 0. Pacman Lock Check
+info "Checking pacman lock status..."
+check_and_clear_pacman_lock
+
 # 1. Arch Linux check
 info "Checking Linux distribution..."
 if [ ! -f /etc/arch-release ]; then
@@ -27,15 +31,25 @@ ok "Running as non-root user: $USER"
 # 3. Sudo validation
 info "Validating sudo access..."
 if ! sudo -v; then
-    error "User $USER does not have sudo privileges. Please add $USER to the wheel group or configure sudoers."
+    error "User $USER does not have sudo privileges."
+    echo "To fix, switch to root ('su -') and run:"
+    echo "  usermod -aG wheel $USER"
+    echo "  EDITOR=nano visudo   # ensure '%wheel ALL=(ALL:ALL) ALL' is uncommented"
     exit 1
 fi
 ok "Sudo access verified."
 
-# 4. Network check
+# 4. Network check (multi-target fallback)
 info "Checking internet connectivity..."
-if ! curl -fsSL -m 5 "https://archlinux.org" >/dev/null 2>&1 && ! ping -c 1 -W 5 archlinux.org >/dev/null 2>&1; then
-    error "No internet connectivity detected. Please check your network connection."
+ONLINE=0
+for target in "https://archlinux.org" "https://cloudflare.com" "https://google.com" "https://1.1.1.1"; do
+    if curl -fsSL -m 5 "$target" >/dev/null 2>&1; then
+        ONLINE=1
+        break
+    fi
+done
+if [ "$ONLINE" -ne 1 ] && ! ping -c 1 -W 5 archlinux.org >/dev/null 2>&1 && ! ping -c 1 -W 5 1.1.1.1 >/dev/null 2>&1; then
+    error "No internet connectivity detected. Please configure network interfaces or NetworkManager."
     exit 1
 fi
 ok "Internet connection active."
@@ -58,9 +72,24 @@ else
     warn "Systemd is not running as PID 1 (container / chroot environment detected). Service enablement steps will be limited."
 fi
 
-# 7. WSL / VM detection
-if grep -qi microsoft /proc/version 2>/dev/null; then
-    warn "WSL environment detected. Target is a real Arch Linux machine; continuing for testing."
-fi
+# 7. Virtualization / Hypervisor detection
+VIRT=$(detect_hypervisor)
+case "$VIRT" in
+    vmware)
+        ok "VMware hypervisor detected. VMware guest tools and display driver will be enabled."
+        ;;
+    oracle)
+        ok "VirtualBox hypervisor detected. VirtualBox guest utils will be enabled."
+        ;;
+    kvm|qemu)
+        ok "KVM/QEMU hypervisor detected."
+        ;;
+    wsl)
+        warn "WSL environment detected."
+        ;;
+    *)
+        ok "Bare-metal or standard hardware detected."
+        ;;
+esac
 
 ok "Pre-installation checks completed successfully."
