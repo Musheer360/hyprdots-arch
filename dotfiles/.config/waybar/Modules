@@ -155,7 +155,7 @@
 	"format-icons": [
 		"▁", "▂", "▃", "▄", "▅", "▆", "▇", "█"
 	],
-	"on-click-right": "gnome-system-monitor",
+	"on-click-right": "$HOME/.config/hypr/scripts/WaybarScripts.sh --btop",
 },
 
 "disk": {

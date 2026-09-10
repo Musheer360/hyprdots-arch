@@ -24,15 +24,17 @@ else
 fi
 
 PACMAN_PKGS=(
-    hyprland waybar swaync rofi kitty awww matugen hypridle hyprlock hyprpicker hyprpolkitagent
+    hyprland waybar swaync rofi-wayland kitty awww matugen hypridle hyprlock hyprpicker hyprpolkitagent
     hyprland-guiutils cava fastfetch yazi nautilus gvfs mpv btop nvtop
     networkmanager network-manager-applet bluez bluez-utils blueman
     pipewire pipewire-pulse pipewire-alsa wireplumber libpulse pamixer pavucontrol playerctl
     brightnessctl power-profiles-daemon pacman-contrib
     grim slurp wl-clipboard xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xorg-xwayland
-    jq curl rfkill util-linux greetd libnotify
-    zsh ttf-jetbrains-mono-nerd adwaita-fonts adwaita-cursors adwaita-icon-theme
+    jq curl rfkill util-linux greetd libnotify python
+    sound-theme-freedesktop sof-firmware alsa-firmware
+    zsh ttf-jetbrains-mono-nerd noto-fonts-emoji noto-fonts-cjk adwaita-fonts adwaita-cursors adwaita-icon-theme
     gtk3 gtk4 libadwaita polkit xdg-utils xdg-user-dirs desktop-file-utils
+    ffmpegthumbnailer file-roller
     base-devel git sudo which findutils coreutils
 )
 
@@ -48,10 +50,16 @@ case "$VIRT" in
         PACMAN_PKGS+=(virtualbox-guest-utils)
         ;;
     kvm|qemu)
-        info "KVM/QEMU detected: Adding qemu-guest-agent to packages..."
-        PACMAN_PKGS+=(qemu-guest-agent)
+        info "KVM/QEMU detected: Adding qemu-guest-agent and spice-vdagent to packages..."
+        PACMAN_PKGS+=(qemu-guest-agent spice-vdagent)
         ;;
 esac
+
+# Dedicated NVIDIA GPU auto-detection
+if lspci -k 2>/dev/null | grep -iE 'vga|3d' | grep -qi nvidia; then
+    info "NVIDIA GPU detected: Adding nvidia-dkms, linux-headers, and nvidia-utils..."
+    PACMAN_PKGS+=(nvidia-dkms linux-headers nvidia-utils libva-nvidia-driver)
+fi
 
 AUR_REQUIRED=(
     wlogout

@@ -13,7 +13,7 @@ SUDO_KEEP_ALIVE_PID=""
 SUDOERS_TEMP="/etc/sudoers.d/99-hyprdots-installer"
 
 cleanup() {
-    local exit_code=$?
+    local exit_code="${1:-$?}"
     # Terminate sudo keep-alive daemon
     if [ -n "${SUDO_KEEP_ALIVE_PID:-}" ] && kill -0 "$SUDO_KEEP_ALIVE_PID" 2>/dev/null; then
         kill "$SUDO_KEEP_ALIVE_PID" 2>/dev/null || true
@@ -34,7 +34,7 @@ error_handler() {
     printf "\033[0;31m[FATAL] Installation failed at line %s with exit code %s\033[0m\n" "$line_no" "$exit_code" >&2
     printf "\033[0;31m        Failing command: %s\033[0m\n" "$last_command" >&2
     printf "\033[0;33m        Detailed log available at: %s\033[0m\n" "$LOG_FILE" >&2
-    cleanup
+    cleanup "$exit_code"
 }
 trap 'error_handler $? $LINENO "$BASH_COMMAND"' ERR
 

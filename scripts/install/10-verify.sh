@@ -273,13 +273,13 @@ sys.exit(0)
 ' 2>/dev/null || WLOGOUT_FAIL=1
 check_result "wlogout Layout Format" $WLOGOUT_FAIL "Invalid wlogout layout syntax"
 
-# 12. Greetd Config Existence (if configured)
+# 12. Greetd Config Existence and Syntax (if configured)
 if [ "${CONFIGURE_GREETD:-1}" = "1" ] && [ "${SKIP_GREETD:-0}" != "1" ]; then
     GREETD_FAIL=0
-    if [ ! -f /etc/greetd/config.toml ]; then
+    if [ ! -f /etc/greetd/config.toml ] || ! grep -q "^\[default_session\]" /etc/greetd/config.toml || ! grep -q "command =" /etc/greetd/config.toml; then
         GREETD_FAIL=1
     fi
-    check_result "greetd Configuration (/etc/greetd/config.toml)" $GREETD_FAIL "File missing"
+    check_result "greetd Configuration (/etc/greetd/config.toml)" $GREETD_FAIL "File missing or invalid syntax"
 else
     check_result "greetd Configuration (Skipped by user)" 0
 fi

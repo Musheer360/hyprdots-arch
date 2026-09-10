@@ -8,29 +8,32 @@ source "$SCRIPT_DIR/lib.sh"
 
 banner "Step 04: Enabling System Services"
 
+# 1. Enable base system services (works in chroot and live systems)
+info "Enabling system services (NetworkManager, bluetooth)..."
+sudo systemctl enable NetworkManager bluetooth 2>/dev/null || warn "Could not enable NetworkManager/bluetooth"
+
+# 2. Hypervisor guest services
+for srv in vmtoolsd vboxservice qemu-guest-agent spice-vdagentd; do
+    if systemctl list-unit-files "${srv}.service" >/dev/null 2>&1; then
+        info "Enabling hypervisor service ${srv}.service..."
+        sudo systemctl enable "${srv}.service" 2>/dev/null || warn "Could not enable ${srv}.service"
+    fi
+done
+
+# 3. Enable audio and polkit user services globally and per-user
+info "Enabling audio and polkit user services globally..."
+sudo systemctl --global enable pipewire.socket pipewire-pulse.socket wireplumber.service hyprpolkitagent.service 2>/dev/null || true
+systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || true
+
+# 4. If systemd is running as PID 1, actively start core services
 if pidof systemd >/dev/null 2>&1 || [ -d /run/systemd/system ]; then
-    info "Enabling system services (NetworkManager, bluetooth)..."
-    sudo systemctl enable NetworkManager bluetooth || warn "Could not enable NetworkManager/bluetooth"
-    sudo systemctl start NetworkManager bluetooth 2>/dev/null || warn "Could not start NetworkManager/bluetooth (may already be running or in container)"
-
-    # Hypervisor guest services
-    if systemctl list-unit-files vmtoolsd.service >/dev/null 2>&1; then
-        info "Enabling VMware Tools service (vmtoolsd)..."
-        sudo systemctl enable --now vmtoolsd.service || warn "Could not enable vmtoolsd.service"
-    fi
-    if systemctl list-unit-files vboxservice.service >/dev/null 2>&1; then
-        info "Enabling VirtualBox Guest service (vboxservice)..."
-        sudo systemctl enable --now vboxservice.service || warn "Could not enable vboxservice.service"
-    fi
-    if systemctl list-unit-files qemu-guest-agent.service >/dev/null 2>&1; then
-        info "Enabling QEMU Guest Agent (qemu-guest-agent)..."
-        sudo systemctl enable --now qemu-guest-agent.service || warn "Could not enable qemu-guest-agent.service"
-    fi
-
-    info "Enabling audio user services (pipewire, pipewire-pulse, wireplumber)..."
-    systemctl --user enable pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || warn "Could not enable pipewire user sockets"
-    systemctl --user start pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || warn "Could not start pipewire user sockets (no active user session)"
-    ok "Services enabled."
-else
-    warn "Systemd is not running as PID 1. Skipping active service startup; will configure greetd statically in step 09."
+    sudo systemctl start NetworkManager bluetooth 2>/dev/null || true
+    for srv in vmtoolsd vboxservice qemu-guest-agent spice-vdagentd; do
+        if systemctl list-unit-files "${srv}.service" >/dev/null 2>&1; then
+            sudo systemctl start "${srv}.service" 2>/dev/null || true
+        fi
+    done
+    systemctl --user start pipewire.socket pipewire-pulse.socket wireplumber.service 2>/dev/null || true
 fi
+
+ok "Services enabled."

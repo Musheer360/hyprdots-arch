@@ -57,4 +57,22 @@ else
     grep -q "gtk-application-prefer-dark-theme" "$SETTINGS_INI" || echo "gtk-application-prefer-dark-theme=1" >> "$SETTINGS_INI"
 fi
 
-ok "GTK theming configured."
+# Link GTK 4.0 settings
+mkdir -p "$HOME/.config/gtk-4.0"
+ln -sfn "$HOME/.config/gtk-3.0/settings.ini" "$HOME/.config/gtk-4.0/settings.ini"
+
+# XWayland / X11 Cursor fallback
+mkdir -p "$HOME/.icons/default"
+cat << 'EOF' > "$HOME/.icons/default/index.theme"
+[Icon Theme]
+Name=Adwaita
+Inherits=Adwaita
+EOF
+
+# ~/.Xresources fallback for legacy apps
+cat << 'EOF' > "$HOME/.Xresources"
+Xcursor.theme: Adwaita
+Xcursor.size: 24
+EOF
+
+ok "GTK theming and XWayland cursor configured."

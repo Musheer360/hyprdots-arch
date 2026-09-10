@@ -60,7 +60,8 @@ done
 mkdir -p "$HOME/.config/xdg-desktop-portal"
 cat << 'EOF' > "$HOME/.config/xdg-desktop-portal/portals.conf"
 [preferred]
-default=hyprland
+default=hyprland;gtk
+org.freedesktop.impl.portal.FileChooser=gtk
 EOF
 
 ok "Dotfiles deployed and verified."

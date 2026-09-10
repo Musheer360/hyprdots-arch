@@ -27,16 +27,13 @@ sudo tee /etc/greetd/config.toml >/dev/null << 'EOF'
 [terminal]
 vt = 1
 
-[general]
-default_session = "tuigreet --time --remember --remember-session --cmd start-hyprland"
+[default_session]
+command = "tuigreet --time --remember --remember-session --cmd start-hyprland"
+user = "greeter"
 EOF
 
 ok "/etc/greetd/config.toml written."
 
-if pidof systemd >/dev/null 2>&1 || [ -d /run/systemd/system ]; then
-    info "Enabling greetd.service..."
-    sudo systemctl enable greetd.service || warn "Could not enable greetd.service"
-    ok "greetd.service enabled."
-else
-    warn "Systemd not active as PID 1; greetd service configuration file created, but service enablement deferred to real boot."
-fi
+info "Enabling greetd.service..."
+sudo systemctl enable greetd.service || warn "Could not enable greetd.service"
+ok "greetd.service enabled."
