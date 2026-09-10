@@ -15,7 +15,7 @@ hl.curve("winIn",      { type = "bezier", points = { {0.1, 1.1},   {0.1, 1.1}   
 hl.curve("winOut",     { type = "bezier", points = { {0.3, -0.3},  {0.0, 1.0}   } })
 hl.curve("slow",       { type = "bezier", points = { {0.0, 0.85},  {0.3, 1.0}   } })
 hl.curve("overshot",   { type = "bezier", points = { {0.7, 0.6},   {0.1, 1.1}   } })
-hl.curve("bounce",     { type = "bezier", points = { {1.1, 1.6},   {0.1, 0.85}  } })
+hl.curve("bounce",     { type = "bezier", points = { {0.34, 1.56}, {0.64, 1.0}  } })
 hl.curve("sligshot",   { type = "bezier", points = { {1.0, -1.0},  {0.15, 1.25} } })
 
 -- Animations

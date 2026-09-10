@@ -7,12 +7,16 @@ SYMLINK_PATH="$HOME/.config/hypr/current_wallpaper"
 [ ! -d "$WALLPAPER_DIR" ] && exit 1
 cd "$WALLPAPER_DIR" || exit 1
 
-SELECTED_WALL=$(
-    find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.jpeg" -o -iname "*.webp" \) -printf '%T@ %P\0' 2>/dev/null | \
-    sort -z -n -r | \
-    awk 'BEGIN { RS="\0"; ORS="\n" } { sub(/^[0-9.]+ /, ""); if (length($0) > 0) printf "%s\0icon\x1f%s/%s\n", $0, ENVIRON["PWD"], $0 }' | \
-    rofi -dmenu -p "Wallpaper"
-)
+if [ "${1:-}" = "--random" ]; then
+    SELECTED_WALL=$(find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.jpeg" -o -iname "*.webp" \) -printf '%P\0' | shuf -z -n 1 | tr -d '\0')
+else
+    SELECTED_WALL=$(
+        find . -maxdepth 1 -type f \( -iname "*.jpg" -o -iname "*.png" -o -iname "*.gif" -o -iname "*.jpeg" -o -iname "*.webp" \) -printf '%T@ %P\0' 2>/dev/null | \
+        sort -z -n -r | \
+        awk 'BEGIN { RS="\0"; ORS="\n" } { sub(/^[0-9.]+ /, ""); if (length($0) > 0) printf "%s\0icon\x1f%s/%s\n", $0, ENVIRON["PWD"], $0 }' | \
+        rofi -dmenu -p "Wallpaper"
+    )
+fi
 
 [ -z "$SELECTED_WALL" ] && exit 0
 SELECTED_PATH="$WALLPAPER_DIR/$SELECTED_WALL"

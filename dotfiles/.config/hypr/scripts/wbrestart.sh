@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
-killall -9 swaync 2>/dev/null
-killall -9 waybar 2>/dev/null
-swaync &
-waybar &
+pkill waybar 2>/dev/null || true
+waybar >/dev/null 2>&1 &
+if pgrep -x swaync >/dev/null 2>&1; then
+    swaync-client -R 2>/dev/null || true
+    swaync-client -rs 2>/dev/null || true
+else
+    swaync >/dev/null 2>&1 &
+fi
