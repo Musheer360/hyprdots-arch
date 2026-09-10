@@ -1,0 +1,3 @@
+*.log
+.DS_Store
+dotfiles/.config/hypr/current_wallpaper
