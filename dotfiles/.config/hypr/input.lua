@@ -13,10 +13,13 @@ hl.config({
 
         touchpad = {
             natural_scroll = true,
+            disable_while_typing = true,
         },
     },
 
     gestures = {
+        workspace_swipe = true,
+        workspace_swipe_fingers = 3,
         workspace_swipe_distance = 300,
     },
 })
