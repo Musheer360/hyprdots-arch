@@ -18,7 +18,7 @@ if [ ! -d /etc/pacman.d/gnupg ] || { [ ! -f /etc/pacman.d/gnupg/pubring.gpg ] &&
     sudo pacman-key --populate archlinux || true
 fi
 
-# 3. Pacman configuration optimizations (ParallelDownloads & Color)
+# 3. Pacman & makepkg optimizations (ParallelDownloads, Color, multi-core makepkg, !debug)
 if [ -f /etc/pacman.conf ]; then
     info "Optimizing pacman configuration..."
     sudo sed -i 's/^#Color/Color/' /etc/pacman.conf
@@ -26,6 +26,13 @@ if [ -f /etc/pacman.conf ]; then
     if ! grep -q "^ParallelDownloads" /etc/pacman.conf; then
         sudo sed -i '/^\[options\]/a ParallelDownloads = 5' /etc/pacman.conf 2>/dev/null || true
     fi
+fi
+
+if [ -f /etc/makepkg.conf ]; then
+    info "Optimizing makepkg build and compression settings..."
+    sudo sed -i 's/^#MAKEFLAGS="-j2"/MAKEFLAGS="-j$(nproc)"/' /etc/makepkg.conf
+    sudo sed -i 's/COMPRESSZST=(zstd -c -z -q -)/COMPRESSZST=(zstd -c -z -q --threads=0 -)/' /etc/makepkg.conf
+    sudo sed -i 's/\bdebug\b/!debug/g' /etc/makepkg.conf
 fi
 
 # 4. Refresh keyring first to avoid signature verification failures on older images
