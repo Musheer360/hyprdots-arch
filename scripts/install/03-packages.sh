@@ -27,7 +27,7 @@ PACMAN_PKGS=(
     networkmanager network-manager-applet bluez bluez-utils blueman
     pipewire pipewire-pulse pipewire-alsa wireplumber libpulse pamixer pavucontrol playerctl
     brightnessctl power-profiles-daemon pacman-contrib
-    grim slurp wl-clipboard xdg-desktop-portal-hyprland xdg-desktop-portal-gtk
+    grim slurp wl-clipboard xdg-desktop-portal-hyprland xdg-desktop-portal-gtk xorg-xwayland
     jq curl rfkill util-linux greetd libnotify
     zsh ttf-jetbrains-mono-nerd adwaita-fonts adwaita-cursors adwaita-icon-theme
     gtk3 gtk4 libadwaita polkit xdg-utils desktop-file-utils
